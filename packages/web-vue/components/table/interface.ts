@@ -10,7 +10,7 @@ export const TABLE_PAGE_POSITION = [
   'bottom',
   'br',
 ] as const;
-export type TablePagePosition = typeof TABLE_PAGE_POSITION[number];
+export type TablePagePosition = (typeof TABLE_PAGE_POSITION)[number];
 
 export interface TableData {
   /**
@@ -281,6 +281,7 @@ export interface TableColumnData {
   rowSpan?: number;
   index?: number;
   parent?: TableColumnData;
+  [key: string]: any;
 }
 
 export interface TableBorder {

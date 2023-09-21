@@ -49,6 +49,7 @@ import IconMinus from '../icon/icon-minus';
 import Spin from '../spin';
 import Pagination, { PaginationProps } from '../pagination';
 import Empty from '../empty';
+import Toolbar from './table-toolbar';
 import ColGroup from './table-col-group.vue';
 import Thead from './table-thead';
 import Tbody from './table-tbody';
@@ -74,6 +75,7 @@ import Scrollbar, { ScrollbarProps } from '../scrollbar';
 import { useComponentRef } from '../_hooks/use-component-ref';
 import type { BaseType } from '../_utils/types';
 import { useScrollbar } from '../_hooks/use-scrollbar';
+import { useToolbar, ToolbarProps } from './hooks/use-toolbar';
 import { getValueByPath, setValueByPath } from '../_utils/get-value-by-path';
 
 const DEFAULT_BORDERED = {
@@ -412,6 +414,15 @@ export default defineComponent({
       type: [Object, Boolean] as PropType<boolean | ScrollbarProps>,
       default: true,
     },
+    /**
+     * @zh 是否开启表格工具栏
+     * @en Whether to enable table toolbar
+     * @version 2.46.0
+     */
+    toolbar: {
+      type: [Boolean, Object] as PropType<boolean | ToolbarProps>,
+      default: true,
+    },
   },
   emits: {
     'update:selectedKeys': (rowKeys: (string | number)[]) => true,
@@ -523,6 +534,16 @@ export default defineComponent({
      * @version 2.28.0
      */
     'columnResize': (dataIndex: string, width: number) => true,
+    /**
+     * @zh 列设置改变时触发
+     * @en Triggered when column setting changed
+     * @param {any} data
+     * @param {TableColumnData} currentColumn
+     * @param {Event} ev
+     * @version 2.46.0
+     */
+    'columnSetting': (data: any, currentColumn?: TableColumnData, ev?: Event) =>
+      true,
   },
   /**
    * @zh 表格列定义。启用时会屏蔽 columns 属性
@@ -632,6 +653,7 @@ export default defineComponent({
       draggable,
       summarySpanMethod,
       scrollbar,
+      toolbar,
     } = toRefs(props);
     const prefixCls = getPrefixCls('table');
     const bordered = computed(() => {
@@ -654,6 +676,7 @@ export default defineComponent({
       return { x, y };
     });
 
+    const tableRef = ref<HTMLElement>();
     // const theadRef = ref<HTMLElement>();
     const summaryRef = ref<HTMLElement>();
     const thRefs = ref<Record<string, HTMLElement>>({});
@@ -704,6 +727,16 @@ export default defineComponent({
     const dataColumnMap = new Map<string, TableColumnData>();
     const dataColumns = ref<TableColumnData[]>([]);
     const groupColumns = ref<TableColumnData[][]>([]);
+    const flattenColumns = ref<TableColumnData[]>([]);
+
+    const { toolbarProps, hasGroup, handleSetting } = useToolbar({
+      toolbar,
+      columns,
+      dataColumns,
+      groupColumns,
+      dataColumnMap,
+      emit,
+    });
 
     watch(
       [columns, slotColumns],
@@ -714,6 +747,7 @@ export default defineComponent({
         );
         dataColumns.value = result.dataColumns;
         groupColumns.value = result.groupColumns;
+        flattenColumns.value = result.dataColumns;
       },
       { immediate: true, deep: true }
     );
@@ -1306,6 +1340,7 @@ export default defineComponent({
     provide(
       tableInjectionKey,
       reactive({
+        tableRef,
         loadMore,
         addLazyLoadData,
         slots,
@@ -2131,12 +2166,24 @@ export default defineComponent({
 
     const render = () => {
       if (slots.default) {
-        return <div class={cls.value}>{renderTable(slots.default)}</div>;
+        return (
+          <div ref={tableRef} class={cls.value}>
+            {renderTable(slots.default)}
+          </div>
+        );
       }
       children.value = slots.columns?.();
       // fix #1724 sortedData.value.length > 0
       return (
-        <div class={cls.value} style={style.value}>
+        <div ref={tableRef} class={cls.value} style={style.value}>
+          {toolbar.value && (
+            <Toolbar
+              {...toolbarProps.value}
+              hasGroup={hasGroup.value}
+              columns={flattenColumns.value}
+              onChange={handleSetting}
+            />
+          )}
           {children.value}
           <Spin {...spinProps.value}>
             {props.pagination !== false &&

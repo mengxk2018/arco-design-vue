@@ -4,7 +4,7 @@ import {
   TableDataWithRaw,
   TableOperationColumn,
 } from './interface';
-import { isArray, isNull, isUndefined } from '../_utils/is';
+import { isArray, isFunction, isNull, isUndefined } from '../_utils/is';
 import {
   resolveProps,
   isNamedComponent,
@@ -63,6 +63,23 @@ const setParentFixed = (column: TableColumnData, fixed: 'left' | 'right') => {
   }
 };
 
+export function getColumnTitle(
+  item: TableColumnData,
+  index: number,
+  group?: boolean
+) {
+  if (group && item.path) return item.path as string;
+
+  let title = item.title || `#${index + 1}`;
+  if (isFunction(title)) {
+    const titleVNode = title() as VNode;
+    title = ((titleVNode.children as any[]) || [])
+      .filter((node) => typeof node === 'string')
+      .join('');
+  }
+  return title as string;
+}
+
 // Get the grouped header row data
 export const getGroupColumns = (
   columns: TableColumnData[],
@@ -86,14 +103,28 @@ export const getGroupColumns = (
       level = 0,
       parent,
       fixed,
+      path,
+      pathIndex,
     }: {
       level?: number;
       parent?: TableColumnData;
       fixed?: 'left' | 'right';
+      path?: string;
+      pathIndex?: string;
     } = {}
   ) => {
-    for (const item of columns) {
-      const cell: TableColumnData = { ...item, parent };
+    for (const [index, item] of columns.entries()) {
+      const title = getColumnTitle(item, index);
+      const cellPath = path ? `${title}/${path}` : title;
+      const cellPathIndex = pathIndex
+        ? `${pathIndex}-${index}`
+        : index.toString();
+      const cell: TableColumnData = {
+        ...item,
+        parent,
+        path: cellPath,
+        pathIndex: cellPathIndex,
+      };
       if (isArray(cell.children)) {
         const colSpan = getDataColumnsNumber(cell.children);
         if (colSpan > 1) {
@@ -104,6 +135,8 @@ export const getGroupColumns = (
           level: level + 1,
           parent: cell,
           fixed: cell.fixed,
+          path: cell.path,
+          pathIndex: cell.pathIndex,
         });
       } else {
         // Minimum header
@@ -120,8 +153,10 @@ export const getGroupColumns = (
           }
         }
 
-        if (isUndefined(cell.dataIndex) || isNull(cell.dataIndex)) {
-          cell.dataIndex = `__arco_data_index_${dataColumns.length}`;
+        if (!cell.dataIndex) {
+          cell.dataIndex = cell.title
+            ? title
+            : `__arco_data_index_${dataColumns.length}`;
         }
 
         // dataColumns和groupColumns公用一个cell的引用

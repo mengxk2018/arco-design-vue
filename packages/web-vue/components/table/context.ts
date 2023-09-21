@@ -9,6 +9,7 @@ import {
 } from './interface';
 
 export interface TableContext {
+  tableRef: HTMLElement | undefined;
   loadMore?: (
     record: TableData,
     done: (children?: TableData[]) => void
