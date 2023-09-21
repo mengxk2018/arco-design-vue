@@ -1,7 +1,7 @@
-import { nextTick, ref, unref } from 'vue';
 import type { Ref } from 'vue';
-import type Sortable from 'sortablejs';
+import { nextTick, ref, unref } from 'vue';
 import type { Options } from 'sortablejs';
+import Sortable from 'sortablejs';
 
 export function useSortable(
   el: HTMLElement | Ref<HTMLElement>,
@@ -14,7 +14,6 @@ export function useSortable(
       if (!el) return;
 
       if (show) {
-        const Sortable = (await import('sortablejs')).default;
         sortable.value = Sortable.create(unref(el), {
           animation: 200,
           delay: 150,

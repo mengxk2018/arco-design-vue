@@ -235,12 +235,10 @@ export default defineComponent({
       });
       const id = items.map((item) => item.title.split('/')[0]).toString();
 
-      const { createHash } = await import('crypto');
-      const key =
-        props.id ||
-        props.title ||
-        (createHash && createHash('md5').update(id).digest('hex')) ||
-        id;
+      // const { createHash } = await import('crypto');
+      // (createHash && createHash('md5').update(id).digest('hex'));
+
+      const key = props.id || props.title || id;
 
       const settingStore = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
       settingStore[key] = items;
