@@ -1,11 +1,4 @@
-import {
-  computed,
-  defineComponent,
-  ref,
-  watch,
-  onMounted,
-  onUnmounted,
-} from 'vue';
+import { computed, defineComponent, ref, watch, onMounted, onUnmounted, createVNode } from 'vue';
 import scrollIntoView from 'scroll-into-view-if-needed';
 import Tooltip from '../tooltip';
 import { MenuItemProps } from './interface';
@@ -48,9 +41,7 @@ export default defineComponent({
     const { level } = useLevel();
     const menuContext = useMenuContext();
     const refItemElement = ref<HTMLDivElement>();
-    const isSelected = computed(
-      () => (menuContext.selectedKeys || []).indexOf(key.value) > -1
-    );
+    const isSelected = computed(() => (menuContext.selectedKeys || []).indexOf(key.value) > -1);
 
     const menuDataCollector = useMenuDataCollectorContext();
 
@@ -63,11 +54,7 @@ export default defineComponent({
     });
 
     function scrollTo() {
-      if (
-        menuContext.autoScrollIntoView &&
-        refItemElement.value &&
-        isSelected.value
-      ) {
+      if (menuContext.autoScrollIntoView && refItemElement.value && isSelected.value) {
         scrollIntoView(refItemElement.value as HTMLDivElement, {
           behavior: 'smooth',
           block: 'nearest',
@@ -112,6 +99,7 @@ export default defineComponent({
     const children = this.$slots.default?.() || [];
     const showIndent = needTextIndent && !inTrigger && !collapsed;
     const iconElement = this.$slots.icon && this.$slots.icon();
+    const wrapperElement = (this.$slots.wrapper && this.$slots.wrapper()[0]) || 'div';
 
     const content = [
       showIndent && <MenuIndent level={level} />,
@@ -132,6 +120,10 @@ export default defineComponent({
       ),
     ].filter(Boolean);
 
+    const itemWrapper = createVNode(wrapperElement, { class: `${prefixCls}-item-wrapper` }, [
+      content,
+    ]);
+
     const itemElement = (
       <div
         ref="refItemElement"
@@ -147,19 +139,14 @@ export default defineComponent({
         onClick={onClick}
       >
         {/* 内容 */}
-        {content}
+        {itemWrapper}
         {/* 选中的下横线 */}
-        {isSelected && mode === 'horizontal' && (
-          <div class={`${prefixCls}-selected-label`} />
-        )}
+        {isSelected && mode === 'horizontal' && <div class={`${prefixCls}-selected-label`} />}
       </div>
     );
 
     if (needTooltip) {
-      const tooltipClassNames = [
-        `${prefixCls}-item-tooltip`,
-        tooltipProps?.class,
-      ];
+      const tooltipClassNames = [`${prefixCls}-item-tooltip`, tooltipProps?.class];
       return (
         <Tooltip
           trigger="hover"
