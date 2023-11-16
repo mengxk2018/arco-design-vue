@@ -57,6 +57,7 @@ module.exports = {
     // Utils allows export
     'import/prefer-default-export': 0,
     'import/no-named-as-default': 0,
+    'import/no-cycle': 0,
     // You can use underscore variable names (private variables)
     'no-underscore-dangle': 0,
     // Allow ternary expression nesting
@@ -75,10 +76,7 @@ module.exports = {
     'no-empty': [2, { allowEmptyCatch: true }],
     'no-bitwise': 0,
     'no-return-assign': 0,
-    'no-unused-expressions': [
-      'error',
-      { allowShortCircuit: true, allowTernary: true },
-    ],
+    'no-unused-expressions': ['error', { allowShortCircuit: true, allowTernary: true }],
     'no-continue': 0,
     'no-console': 2,
     // TODO: Temporarily closed

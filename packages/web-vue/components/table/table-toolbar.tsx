@@ -103,9 +103,7 @@ export default defineComponent({
     });
 
     const storeColumns = computed(() => {
-      const id = originTitles.value
-        .map((item) => item.split('/')[0])
-        .toString();
+      const id = originTitles.value.map((item) => item.split('/')[0]).toString();
       const key = props.id || props.title || id;
       const settingStore = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
       const store = settingStore[key] || [];
@@ -113,31 +111,26 @@ export default defineComponent({
     });
 
     const hasStore = computed(() => {
-      return storeColumns.value.length > 0;
+      return (
+        storeColumns.value.length > 0 &&
+        storeColumns.value.map((item) => item.title).toString() === originKeys.value.toString()
+      );
     });
 
     const storeSelected = computed(() => {
-      return storeColumns.value
-        .filter((item) => item.checked)
-        .map((item) => item.title);
+      return storeColumns.value.filter((item) => item.checked).map((item) => item.title);
     });
 
     const storeSorted = computed(() => {
-      return [...storeColumns.value]
-        .sort((a, b) => a.sort - b.sort)
-        .map((item) => item.title);
+      return [...storeColumns.value].sort((a, b) => a.sort - b.sort).map((item) => item.title);
     });
 
     const storeLeftFixed = computed(() => {
-      return storeColumns.value
-        .filter((item) => item.fixed === 'left')
-        .map((item) => item.title);
+      return storeColumns.value.filter((item) => item.fixed === 'left').map((item) => item.title);
     });
 
     const storeRightFixed = computed(() => {
-      return storeColumns.value
-        .filter((item) => item.fixed === 'right')
-        .map((item) => item.title);
+      return storeColumns.value.filter((item) => item.fixed === 'right').map((item) => item.title);
     });
 
     const originColumns = computed(() => {
@@ -169,7 +162,7 @@ export default defineComponent({
     );
 
     const sortedKey = ref<string[]>(
-      hasStore.value ? [...storeSorted.value] : [...originKeys.value]
+      hasStore.value && isSortable.value ? [...storeSorted.value] : [...originKeys.value]
     );
 
     const leftKeys = ref<string[]>(
@@ -228,9 +221,7 @@ export default defineComponent({
 
     const updateStore = async function (value: any[]) {
       const items = originColumns.value.map((item) => {
-        const { title, checked, sort, fixed } = value.find(
-          (v) => v.title === item.title
-        );
+        const { title, checked, sort, fixed } = value.find((v) => v.title === item.title);
         return { title, checked, sort, fixed };
       });
       const id = items.map((item) => item.title.split('/')[0]).toString();
@@ -251,12 +242,7 @@ export default defineComponent({
       onEnd(event) {
         const { oldIndex, newIndex } = event;
 
-        if (
-          isUndefined(oldIndex) ||
-          isUndefined(newIndex) ||
-          oldIndex === newIndex
-        )
-          return;
+        if (isUndefined(oldIndex) || isUndefined(newIndex) || oldIndex === newIndex) return;
 
         const lastKeys = [...sortedKey.value];
 
@@ -329,58 +315,55 @@ export default defineComponent({
     };
 
     const renderSettingContent = function () {
-      const settingItems = sortedKey.value.map((key) => {
-        const item = originColumns.value.find(
-          (column) => column.title === key
-        ) as {
-          title: string;
-          dataIndex: string | undefined;
-          raw: TableColumnData;
-        };
-        return (
-          <div class={`${prefixCls}-setting-item`} key={item.title}>
-            <div class={[`${prefixCls}-setting-item-left`]}>
-              {isSortable.value && <icon-drag-dot-vertical />}
-              <Checkbox
-                modelValue={selectedKeys.value.includes(item.title)}
-                onChange={(checked) => onChange(checked, item.title)}
-              >
-                {item.title}
-              </Checkbox>
-            </div>
-            {isFixable.value && (
-              <div
-                class={[
-                  `${prefixCls}-setting-item-right`,
-                  { disabled: !selectedKeys.value.includes(item.title) },
-                ]}
-              >
-                <Tooltip content="固定到左侧">
-                  <icon-to-left
-                    class={leftKeys.value.includes(item.title) ? 'fixed' : ''}
-                    onClick={() => onFixLeft(item.title)}
-                  />
-                </Tooltip>
-                <span class="separator"></span>
-                <Tooltip content="固定到右侧">
-                  <icon-to-right
-                    class={rightKeys.value.includes(item.title) ? 'fixed' : ''}
-                    onClick={() => onFixRight(item.title)}
-                  />
-                </Tooltip>
+      const settingItems = sortedKey.value
+        .map((key) => {
+          const item = originColumns.value.find((column) => column.title === key) as {
+            title: string;
+            dataIndex: string | undefined;
+            raw: TableColumnData;
+          };
+          return (
+            item && (
+              <div class={`${prefixCls}-setting-item`} key={item.title}>
+                <div class={[`${prefixCls}-setting-item-left`]}>
+                  {isSortable.value && <icon-drag-dot-vertical />}
+                  <Checkbox
+                    modelValue={selectedKeys.value.includes(item.title)}
+                    onChange={(checked) => onChange(checked, item.title)}
+                  >
+                    {item.title}
+                  </Checkbox>
+                </div>
+                {isFixable.value && (
+                  <div
+                    class={[
+                      `${prefixCls}-setting-item-right`,
+                      { disabled: !selectedKeys.value.includes(item.title) },
+                    ]}
+                  >
+                    <Tooltip content="固定到左侧">
+                      <icon-to-left
+                        class={leftKeys.value.includes(item.title) ? 'fixed' : ''}
+                        onClick={() => onFixLeft(item.title)}
+                      />
+                    </Tooltip>
+                    <span class="separator"></span>
+                    <Tooltip content="固定到右侧">
+                      <icon-to-right
+                        class={rightKeys.value.includes(item.title) ? 'fixed' : ''}
+                        onClick={() => onFixRight(item.title)}
+                      />
+                    </Tooltip>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        );
-      });
+            )
+          );
+        })
+        .filter(Boolean);
 
       return (
-        <div
-          class={[
-            `${prefixCls}-setting`,
-            { small: props.small, sortable: isSortable.value },
-          ]}
-        >
+        <div class={[`${prefixCls}-setting`, { small: props.small, sortable: isSortable.value }]}>
           <div class={`${prefixCls}-setting-title`}>
             <Checkbox
               modelValue={isCheckedAll.value}
@@ -389,11 +372,7 @@ export default defineComponent({
             >
               列展示
             </Checkbox>
-            <Button
-              type="text"
-              size={props.small ? 'mini' : 'small'}
-              onClick={onResetAll}
-            >
+            <Button type="text" size={props.small ? 'mini' : 'small'} onClick={onResetAll}>
               重置
             </Button>
           </div>
@@ -413,9 +392,7 @@ export default defineComponent({
           trigger="click"
           position="br"
           v-slots={{ content: renderSettingContent }}
-          onPopupVisibleChange={(visible: boolean) =>
-            isSortable.value && initSortable(visible)
-          }
+          onPopupVisibleChange={(visible: boolean) => isSortable.value && initSortable(visible)}
         >
           <Tooltip content="列设置">
             <icon-settings />
@@ -438,9 +415,17 @@ export default defineComponent({
       );
     };
 
+    const fullscreenTooltip = ref();
+
+    watch(isFullscreen, (value, old) => {
+      if (old === true && value === false) {
+        fullscreenTooltip.value?.handlePopupVisibleChange(false);
+      }
+    });
+
     const renderFullscreen = function () {
       return (
-        <Tooltip content="全屏">
+        <Tooltip content="全屏" ref={fullscreenTooltip}>
           {isFullscreen.value ? (
             <icon-fullscreen-exit onClick={exit} />
           ) : (
@@ -465,12 +450,8 @@ export default defineComponent({
         return (
           <div class={`${prefixCls}-toolbar`}>
             <div class={`${prefixCls}-toolbar-container`}>
-              <div class={`${prefixCls}-toolbar-left`}>
-                {slots.left?.() ?? props.title}
-              </div>
-              <div class={`${prefixCls}-toolbar-right`}>
-                {slots.right?.() ?? renderRight()}
-              </div>
+              <div class={`${prefixCls}-toolbar-left`}>{slots.left?.() ?? props.title}</div>
+              <div class={`${prefixCls}-toolbar-right`}>{slots.right?.() ?? renderRight()}</div>
             </div>
           </div>
         );

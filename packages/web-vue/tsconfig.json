@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "es",
     "target": "ES2015",
-    "module": "ES2020",
+    "module": "esnext",
     "moduleResolution": "node",
     "removeComments": true,
     "strict": true,

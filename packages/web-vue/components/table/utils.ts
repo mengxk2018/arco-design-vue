@@ -1,9 +1,5 @@
 import type { CSSProperties, VNode } from 'vue';
-import {
-  TableColumnData,
-  TableDataWithRaw,
-  TableOperationColumn,
-} from './interface';
+import { TableColumnData, TableDataWithRaw, TableOperationColumn } from './interface';
 import { isArray, isFunction, isNull, isUndefined } from '../_utils/is';
 import {
   resolveProps,
@@ -63,19 +59,24 @@ const setParentFixed = (column: TableColumnData, fixed: 'left' | 'right') => {
   }
 };
 
-export function getColumnTitle(
-  item: TableColumnData,
-  index: number,
-  group?: boolean
-) {
+export function getColumnTitle(item: TableColumnData, index: number, group?: boolean) {
   if (group && item.path) return item.path as string;
 
   let title = item.title || `#${index + 1}`;
   if (isFunction(title)) {
     const titleVNode = title() as VNode;
-    title = ((titleVNode.children as any[]) || [])
-      .filter((node) => typeof node === 'string')
-      .join('');
+    if (titleVNode.children) {
+      title = ((titleVNode.children as any[]) || [])
+        .filter((node) => typeof node === 'string')
+        .map((node) => node.trim())
+        .join('');
+    } else {
+      const render: any = titleVNode.type;
+      title = ((render(true).children as any[]) || [])
+        .filter((node) => typeof node.type === 'symbol')
+        .map((node) => node.children?.trim())
+        .join('');
+    }
   }
   return title as string;
 }
@@ -89,9 +90,7 @@ export const getGroupColumns = (
 
   columnMap.clear();
   const dataColumns: TableColumnData[] = [];
-  const groupColumns: TableColumnData[][] = [...Array(totalHeaderRows)].map(
-    () => []
-  );
+  const groupColumns: TableColumnData[][] = [...Array(totalHeaderRows)].map(() => []);
 
   // For recording
   let lastLeftFixedIndex: number | undefined;
@@ -116,9 +115,7 @@ export const getGroupColumns = (
     for (const [index, item] of columns.entries()) {
       const title = getColumnTitle(item, index);
       const cellPath = path ? `${title}/${path}` : title;
-      const cellPathIndex = pathIndex
-        ? `${pathIndex}-${index}`
-        : index.toString();
+      const cellPathIndex = pathIndex ? `${pathIndex}-${index}` : index.toString();
       const cell: TableColumnData = {
         ...item,
         parent,
@@ -154,9 +151,7 @@ export const getGroupColumns = (
         }
 
         if (!cell.dataIndex) {
-          cell.dataIndex = cell.title
-            ? title
-            : `__arco_data_index_${dataColumns.length}`;
+          cell.dataIndex = cell.title ? title : `__arco_data_index_${dataColumns.length}`;
         }
 
         // dataColumns和groupColumns公用一个cell的引用
@@ -181,10 +176,7 @@ export const getGroupColumns = (
   return { dataColumns, groupColumns };
 };
 
-const getOperationColumnIndex = (
-  operations: TableOperationColumn[],
-  name: string
-) => {
+const getOperationColumnIndex = (operations: TableOperationColumn[], name: string) => {
   for (let i = 0; i < operations.length; i++) {
     if (operations[i].name === name) {
       return i;
@@ -211,8 +203,7 @@ export const getOperationFixedNumber = (
 };
 
 const getFirstDataColumn = (column: TableColumnData): TableColumnData => {
-  if (column.children && column.children.length > 0)
-    return getFirstDataColumn(column.children[0]);
+  if (column.children && column.children.length > 0) return getFirstDataColumn(column.children[0]);
   return column;
 };
 
@@ -228,9 +219,11 @@ export const getFixedNumber = (
   {
     dataColumns,
     operations,
+    thWidth,
   }: {
     dataColumns: TableColumnData[];
     operations: TableOperationColumn[];
+    thWidth?: Record<string, number>;
   }
 ) => {
   let count = 0;
@@ -240,33 +233,42 @@ export const getFixedNumber = (
       count += item.width ?? 40;
     }
     const first = getFirstDataColumn(column);
-    for (const item of dataColumns) {
+    const firstFixed = dataColumns.find((item) => !!item.fixed);
+    const firstFixedIndex = dataColumns.findIndex((item) => !!item.fixed);
+    if (first.dataIndex === firstFixed?.dataIndex) return count;
+
+    for (const [index, item] of Object.entries(dataColumns)) {
       if (first.dataIndex === item.dataIndex) {
         break;
       }
-      count += item.width ?? 0;
+      if (Number(index) >= firstFixedIndex && item.fixed === 'left') {
+        const offsetWidth = thWidth && thWidth[item.dataIndex as string];
+        count += item.width ?? offsetWidth ?? 0;
+      }
     }
     return count;
   }
 
   const last = getLastDataColumn(column);
+  const lastFixed = dataColumns.findLast((item) => !!item.fixed);
+  const lastFixedIndex = dataColumns.findLastIndex((item) => !!item.fixed);
+  if (last.dataIndex === lastFixed?.dataIndex) return count;
+
   for (let i = dataColumns.length - 1; i > 0; i--) {
     const item = dataColumns[i];
     if (last.dataIndex === item.dataIndex) {
       break;
     }
 
-    if (item.fixed === 'right') {
-      count += item.width as number;
+    if (i <= lastFixedIndex && item.fixed === 'right') {
+      const offsetWidth = thWidth && thWidth[item.dataIndex as string];
+      count += item.width ?? offsetWidth ?? 0;
     }
   }
   return count;
 };
 
-export const getOperationFixedCls = (
-  prefixCls: string,
-  column: TableOperationColumn
-): any[] => {
+export const getOperationFixedCls = (prefixCls: string, column: TableOperationColumn): any[] => {
   if (column.fixed) {
     return [
       `${prefixCls}-col-fixed-left`,
@@ -280,10 +282,7 @@ export const getOperationFixedCls = (
 
 export const getFixedCls = (
   prefixCls: string,
-  column: Pick<
-    TableColumnData,
-    'fixed' | 'isLastLeftFixed' | 'isFirstRightFixed'
-  >
+  column: Pick<TableColumnData, 'fixed' | 'isLastLeftFixed' | 'isFirstRightFixed'>
 ): any[] => {
   if (column.fixed === 'left') {
     return [
@@ -309,13 +308,15 @@ export const getStyle = (
   {
     dataColumns,
     operations,
+    thWidth,
   }: {
     dataColumns: TableColumnData[];
     operations: TableOperationColumn[];
+    thWidth?: Record<string, number>;
   }
 ): CSSProperties => {
   if (column.fixed) {
-    const offset = `${getFixedNumber(column, { dataColumns, operations })}px`;
+    const offset = `${getFixedNumber(column, { dataColumns, operations, thWidth })}px`;
     if (column.fixed === 'left') {
       return {
         left: offset,
@@ -407,15 +408,10 @@ export const getLeafKeys = (record: TableDataWithRaw) => {
   return keys;
 };
 
-export const getSelectionStatus = (
-  selectedRowKeys: BaseType[],
-  leafKeys: BaseType[]
-) => {
+export const getSelectionStatus = (selectedRowKeys: BaseType[], leafKeys: BaseType[]) => {
   let checked = false;
   let indeterminate = false;
-  const selectedLeafKeys = leafKeys.filter((key) =>
-    selectedRowKeys.includes(key)
-  );
+  const selectedLeafKeys = leafKeys.filter((key) => selectedRowKeys.includes(key));
   if (selectedLeafKeys.length > 0) {
     if (selectedLeafKeys.length >= leafKeys.length) {
       checked = true;

@@ -1,19 +1,6 @@
-import {
-  computed,
-  createVNode,
-  defineComponent,
-  inject,
-  PropType,
-  ref,
-  VNode,
-} from 'vue';
+import { computed, createVNode, defineComponent, inject, PropType, ref, VNode } from 'vue';
 import { getPrefixCls } from '../_utils/global-config';
-import {
-  TableColumnData,
-  TableData,
-  TableDataWithRaw,
-  TableOperationColumn,
-} from './interface';
+import { TableColumnData, TableData, TableDataWithRaw, TableOperationColumn } from './interface';
 import { getFixedCls, getStyle } from './utils';
 import { getValueByPath } from '../_utils/get-value-by-path';
 import IconLoading from '../icon/icon-loading';
@@ -21,14 +8,8 @@ import { isFunction, isObject } from '../_utils/is';
 import { TableContext, tableInjectionKey } from './context';
 import AutoTooltip from '../_components/auto-tooltip/auto-tooltip';
 
-const TD_TYPES = [
-  'normal',
-  'operation',
-  'checkbox',
-  'radio',
-  'expand',
-] as const;
-type TdTypes = typeof TD_TYPES[number];
+const TD_TYPES = ['normal', 'operation', 'checkbox', 'radio', 'expand'] as const;
+type TdTypes = (typeof TD_TYPES)[number];
 
 export default defineComponent({
   name: 'Td',
@@ -54,6 +35,10 @@ export default defineComponent({
       type: Array as PropType<TableColumnData[]>,
       default: () => [],
     },
+    thWidth: {
+      type: Object as PropType<Record<string, number>>,
+      default: () => ({}),
+    },
     colSpan: {
       type: Number,
       default: 1,
@@ -78,9 +63,7 @@ export default defineComponent({
       default: 0,
     },
     renderExpandBtn: {
-      type: Function as PropType<
-        (record: TableDataWithRaw, stopPropagation?: boolean) => VNode
-      >,
+      type: Function as PropType<(record: TableDataWithRaw, stopPropagation?: boolean) => VNode>,
     },
     summary: {
       type: Boolean,
@@ -98,15 +81,11 @@ export default defineComponent({
     });
 
     const isSorted = computed(
-      () =>
-        props.column?.dataIndex &&
-        tableCtx.sorter?.field === props.column.dataIndex
+      () => props.column?.dataIndex && tableCtx.sorter?.field === props.column.dataIndex
     );
 
     const resizing = computed(
-      () =>
-        props.column?.dataIndex &&
-        tableCtx.resizingColumn === props.column.dataIndex
+      () => props.column?.dataIndex && tableCtx.resizingColumn === props.column.dataIndex
     );
 
     const getCustomClass = () => {
@@ -146,6 +125,7 @@ export default defineComponent({
       const style = getStyle(props.column, {
         dataColumns: props.dataColumns,
         operations: props.operations,
+        thWidth: props.thWidth,
       });
       const customStyle = getCustomStyle();
       return {
@@ -187,19 +167,13 @@ export default defineComponent({
       if (props.column.slotName && tableCtx.slots?.[props.column.slotName]) {
         return tableCtx.slots[props.column.slotName]?.(data);
       }
-      return String(
-        getValueByPath(props.record?.raw, props.column.dataIndex) ?? ''
-      );
+      return String(getValueByPath(props.record?.raw, props.column.dataIndex) ?? '');
     };
 
     const isLoading = ref(false);
 
     const handleClick = (ev: Event) => {
-      if (
-        isFunction(tableCtx.loadMore) &&
-        !props.record?.isLeaf &&
-        !props.record?.children
-      ) {
+      if (isFunction(tableCtx.loadMore) && !props.record?.isLeaf && !props.record?.children) {
         isLoading.value = true;
         new Promise<TableData[] | undefined>((resolve) => {
           tableCtx.loadMore?.(props.record.raw, resolve);
@@ -233,18 +207,11 @@ export default defineComponent({
           )}
           {props.showExpandBtn && (
             <span class={`${prefixCls}-cell-inline-icon`} onClick={handleClick}>
-              {isLoading.value ? (
-                <IconLoading />
-              ) : (
-                props.renderExpandBtn?.(props.record, false)
-              )}
+              {isLoading.value ? <IconLoading /> : props.renderExpandBtn?.(props.record, false)}
             </span>
           )}
           {props.column?.ellipsis && props.column?.tooltip ? (
-            <AutoTooltip
-              class={`${prefixCls}-td-content`}
-              tooltipProps={tooltipProps.value}
-            >
+            <AutoTooltip class={`${prefixCls}-td-content`} tooltipProps={tooltipProps.value}>
               {renderContent()}
             </AutoTooltip>
           ) : (

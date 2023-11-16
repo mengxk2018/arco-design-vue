@@ -1,11 +1,4 @@
-import {
-  computed,
-  createVNode,
-  defineComponent,
-  inject,
-  PropType,
-  toRefs,
-} from 'vue';
+import { computed, createVNode, defineComponent, inject, PropType, toRefs } from 'vue';
 import { getPrefixCls } from '../_utils/global-config';
 import Checkbox from '../checkbox';
 import Radio from '../radio';
@@ -40,6 +33,10 @@ export default defineComponent({
       default: () => [],
     },
     resizable: Boolean,
+    thWidth: {
+      type: Object as PropType<Record<string, number>>,
+      default: () => ({}),
+    },
   },
   setup(props, { slots }) {
     const { column } = toRefs(props);
@@ -49,9 +46,7 @@ export default defineComponent({
     const tableCtx = inject<Partial<TableContext>>(tableInjectionKey, {});
 
     const resizing = computed(
-      () =>
-        props.column?.dataIndex &&
-        tableCtx.resizingColumn === props.column.dataIndex
+      () => props.column?.dataIndex && tableCtx.resizingColumn === props.column.dataIndex
     );
 
     const tooltipProps = computed(() => {
@@ -62,10 +57,7 @@ export default defineComponent({
     });
 
     const filterIconAlignLeft = computed(() => {
-      if (
-        props.column?.filterable &&
-        isBoolean(props.column.filterable.alignLeft)
-      ) {
+      if (props.column?.filterable && isBoolean(props.column.filterable.alignLeft)) {
         return props.column.filterable.alignLeft;
       }
       return tableCtx.filterIconAlignLeft;
@@ -203,9 +195,7 @@ export default defineComponent({
             // @ts-ignore
             onClick={(ev: Event) => ev.stopPropagation()}
           >
-            {props.column.slots?.['filter-icon']?.() ?? filterable.icon?.() ?? (
-              <IconFilter />
-            )}
+            {props.column.slots?.['filter-icon']?.() ?? filterable.icon?.() ?? <IconFilter />}
           </IconHover>
         </Trigger>
       );
@@ -237,10 +227,7 @@ export default defineComponent({
       if (slots.default) {
         return slots.default();
       }
-      if (
-        props.column?.titleSlotName &&
-        tableCtx.slots?.[props.column.titleSlotName]
-      ) {
+      if (props.column?.titleSlotName && tableCtx.slots?.[props.column.titleSlotName]) {
         return tableCtx.slots[props.column.titleSlotName]?.({
           column: props.column,
         });
@@ -255,15 +242,9 @@ export default defineComponent({
     };
 
     const renderCell = () => (
-      <span
-        class={cellCls.value}
-        onClick={hasSorter.value ? handleClickSorter : undefined}
-      >
+      <span class={cellCls.value} onClick={hasSorter.value ? handleClickSorter : undefined}>
         {props.column?.ellipsis && props.column?.tooltip ? (
-          <AutoTooltip
-            class={`${prefixCls}-th-title`}
-            tooltipProps={tooltipProps.value}
-          >
+          <AutoTooltip class={`${prefixCls}-th-title`} tooltipProps={tooltipProps.value}>
             {renderTitle()}
           </AutoTooltip>
         ) : (
@@ -283,8 +264,7 @@ export default defineComponent({
                 class={[
                   `${prefixCls}-sorter-icon`,
                   {
-                    [`${prefixCls}-sorter-icon-active`]:
-                      sortOrder.value === 'ascend',
+                    [`${prefixCls}-sorter-icon-active`]: sortOrder.value === 'ascend',
                   },
                 ]}
               >
@@ -296,8 +276,7 @@ export default defineComponent({
                 class={[
                   `${prefixCls}-sorter-icon`,
                   {
-                    [`${prefixCls}-sorter-icon-active`]:
-                      sortOrder.value === 'descend',
+                    [`${prefixCls}-sorter-icon-active`]: sortOrder.value === 'descend',
                   },
                 ]}
               >
@@ -315,6 +294,7 @@ export default defineComponent({
         ...getStyle(props.column, {
           dataColumns: props.dataColumns,
           operations: props.operations,
+          thWidth: props.thWidth,
         }),
         ...props.column?.cellStyle,
         ...props.column?.headerCellStyle,
@@ -357,10 +337,7 @@ export default defineComponent({
             renderCell(),
             !filterIconAlignLeft.value && renderFilter(),
             props.resizable && (
-              <span
-                class={`${prefixCls}-column-handle`}
-                onMousedown={handleMouseDown}
-              />
+              <span class={`${prefixCls}-column-handle`} onMousedown={handleMouseDown} />
             ),
           ],
         }

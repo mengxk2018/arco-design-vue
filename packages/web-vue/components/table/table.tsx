@@ -1,9 +1,4 @@
-import type {
-  ComponentPublicInstance,
-  CSSProperties,
-  PropType,
-  Slot,
-} from 'vue';
+import type { ComponentPublicInstance, CSSProperties, PropType, Slot } from 'vue';
 import {
   computed,
   defineComponent,
@@ -136,8 +131,7 @@ export default defineComponent({
      */
     size: {
       type: String as PropType<Size>,
-      default: () =>
-        inject(configProviderInjectionKey, undefined)?.size ?? 'large',
+      default: () => inject(configProviderInjectionKey, undefined)?.size ?? 'large',
     },
     /**
      * @zh 表格的 table-layout 属性设置为 fixed，设置为 fixed 后，表格的宽度不会被内容撑开超出 100%。
@@ -292,10 +286,7 @@ export default defineComponent({
      */
     rowClass: {
       type: [String, Array, Object, Function] as PropType<
-        | string
-        | any[]
-        | Record<string, any>
-        | ((record: TableData, rowIndex: number) => any)
+        string | any[] | Record<string, any> | ((record: TableData, rowIndex: number) => any)
       >,
     },
     /**
@@ -324,11 +315,7 @@ export default defineComponent({
      */
     summary: {
       type: [Boolean, Function] as PropType<
-        | boolean
-        | ((params: {
-            columns: TableColumnData[];
-            data: TableData[];
-          }) => TableData[])
+        boolean | ((params: { columns: TableColumnData[]; data: TableData[] }) => TableData[])
       >,
     },
     /**
@@ -421,7 +408,7 @@ export default defineComponent({
      */
     toolbar: {
       type: [Boolean, Object] as PropType<boolean | ToolbarProps>,
-      default: true,
+      default: false,
     },
   },
   emits: {
@@ -447,11 +434,7 @@ export default defineComponent({
      * @param {string | number} rowKey
      * @param {TableData} record
      */
-    'select': (
-      rowKeys: (string | number)[],
-      rowKey: string | number,
-      record: TableData
-    ) => true,
+    'select': (rowKeys: (string | number)[], rowKey: string | number, record: TableData) => true,
     /**
      * @zh 点击全选选择器时触发
      * @en Triggered when the select all selector is clicked
@@ -498,11 +481,7 @@ export default defineComponent({
      * @param {TableData[]} currentData
      * @version 2.40.0 增加 currentData
      */
-    'change': (
-      data: TableData[],
-      extra: TableChangeExtra,
-      currentData: TableData[]
-    ) => true,
+    'change': (data: TableData[], extra: TableChangeExtra, currentData: TableData[]) => true,
     /**
      * @zh 点击单元格时触发
      * @en Triggered when a cell is clicked
@@ -510,8 +489,7 @@ export default defineComponent({
      * @param {TableColumnData} column
      * @param {Event} ev
      */
-    'cellClick': (record: TableData, column: TableColumnData, ev: Event) =>
-      true,
+    'cellClick': (record: TableData, column: TableColumnData, ev: Event) => true,
     /**
      * @zh 点击行数据时触发
      * @en Triggered when row data is clicked
@@ -542,8 +520,7 @@ export default defineComponent({
      * @param {Event} ev
      * @version 2.46.0
      */
-    'columnSetting': (data: any, currentColumn?: TableColumnData, ev?: Event) =>
-      true,
+    'columnSetting': (data: any, currentColumn?: TableColumnData, ev?: Event) => true,
   },
   /**
    * @zh 表格列定义。启用时会屏蔽 columns 属性
@@ -663,9 +640,7 @@ export default defineComponent({
       return { ...DEFAULT_BORDERED, wrapper: props.bordered };
     });
     const { children, components } = useChildrenComponents('TableColumn');
-    const checkStrictly = computed(
-      () => rowSelection.value?.checkStrictly ?? true
-    );
+    const checkStrictly = computed(() => rowSelection.value?.checkStrictly ?? true);
 
     const { displayScrollbar, scrollbarProps } = useScrollbar(scrollbar);
 
@@ -681,14 +656,10 @@ export default defineComponent({
     const summaryRef = ref<HTMLElement>();
     const thRefs = ref<Record<string, HTMLElement>>({});
 
-    const { componentRef: contentComRef, elementRef: contentRef } =
-      useComponentRef('containerRef');
-    const { componentRef: tbodyComRef, elementRef: tbodyRef } =
-      useComponentRef('containerRef');
-    const { componentRef: virtualComRef, elementRef: virtualRef } =
-      useComponentRef('viewportRef');
-    const { componentRef: theadComRef, elementRef: theadRef } =
-      useComponentRef('containerRef');
+    const { componentRef: contentComRef, elementRef: contentRef } = useComponentRef('containerRef');
+    const { componentRef: tbodyComRef, elementRef: tbodyRef } = useComponentRef('containerRef');
+    const { componentRef: virtualComRef, elementRef: virtualRef } = useComponentRef('viewportRef');
+    const { componentRef: theadComRef, elementRef: theadRef } = useComponentRef('containerRef');
     const containerElement = computed(() => {
       if (splitTable.value) {
         if (isVirtualList.value) {
@@ -741,10 +712,7 @@ export default defineComponent({
     watch(
       [columns, slotColumns],
       ([columns, slotColumns]) => {
-        const result = getGroupColumns(
-          slotColumns ?? columns ?? [],
-          dataColumnMap
-        );
+        const result = getGroupColumns(slotColumns ?? columns ?? [], dataColumnMap);
         dataColumns.value = result.dataColumns;
         groupColumns.value = result.groupColumns;
         flattenColumns.value = result.dataColumns;
@@ -752,9 +720,7 @@ export default defineComponent({
       { immediate: true, deep: true }
     );
 
-    const isPaginationTop = computed(() =>
-      ['tl', 'top', 'tr'].includes(props.pagePosition)
-    );
+    const isPaginationTop = computed(() => ['tl', 'top', 'tr'].includes(props.pagePosition));
 
     const hasLeftFixedColumn = ref(false);
     const hasRightFixedColumn = ref(false);
@@ -764,11 +730,7 @@ export default defineComponent({
       let _hasLeftFixedColumn = false;
       let _hasRightFixedColumn = false;
       let _hasLeftFixedDataColumns = false;
-      if (
-        props.rowSelection?.fixed ||
-        props.expandable?.fixed ||
-        props.draggable?.fixed
-      ) {
+      if (props.rowSelection?.fixed || props.expandable?.fixed || props.draggable?.fixed) {
         _hasLeftFixedColumn = true;
       }
       for (const column of dataColumns.value) {
@@ -799,9 +761,7 @@ export default defineComponent({
       return false;
     });
 
-    const handleChange = (
-      type: 'pagination' | 'sorter' | 'filter' | 'drag'
-    ) => {
+    const handleChange = (type: 'pagination' | 'sorter' | 'filter' | 'drag') => {
       const extra: TableChangeExtra = {
         type,
         page: page.value,
@@ -813,10 +773,7 @@ export default defineComponent({
       emit('change', flattenRawData.value, extra, sortedData.value);
     };
 
-    const handleFilterChange = (
-      dataIndex: string,
-      filteredValues: string[]
-    ) => {
+    const handleFilterChange = (dataIndex: string, filteredValues: string[]) => {
       _filters.value = {
         ...computedFilters.value,
         [dataIndex]: filteredValues,
@@ -826,10 +783,7 @@ export default defineComponent({
       handleChange('filter');
     };
 
-    const handleSorterChange = (
-      dataIndex: string,
-      direction: 'ascend' | 'descend' | ''
-    ) => {
+    const handleSorterChange = (dataIndex: string, direction: 'ascend' | 'descend' | '') => {
       _sorter.value = direction
         ? {
             field: dataIndex,
@@ -841,12 +795,10 @@ export default defineComponent({
       handleChange('sorter');
     };
 
-    const { _filters, computedFilters, resetFilters, clearFilters } = useFilter(
-      {
-        columns: dataColumns,
-        onFilterChange: handleFilterChange,
-      }
-    );
+    const { _filters, computedFilters, resetFilters, clearFilters } = useFilter({
+      columns: dataColumns,
+      onFilterChange: handleFilterChange,
+    });
     const { _sorter, computedSorter, resetSorters, clearSorters } = useSorter({
       columns: dataColumns,
       onSorterChange: handleSorterChange,
@@ -939,10 +891,7 @@ export default defineComponent({
 
     const lazyLoadData = reactive<Record<string, TableData[]>>({});
 
-    const addLazyLoadData = (
-      children: TableData[] | undefined,
-      record: TableDataWithRaw
-    ) => {
+    const addLazyLoadData = (children: TableData[] | undefined, record: TableDataWithRaw) => {
       if (children) {
         lazyLoadData[record.key] = children;
       }
@@ -973,10 +922,7 @@ export default defineComponent({
       handleDrop,
     } = useDrag(draggable);
 
-    const { resizingColumn, columnWidth, handleThMouseDown } = useColumnResize(
-      thRefs,
-      emit
-    );
+    const { resizingColumn, columnWidth, handleThMouseDown } = useColumnResize(thRefs, emit);
 
     const processedData = computed(() => {
       const travel = (data: TableData[]) => {
@@ -1045,10 +991,7 @@ export default defineComponent({
               const valueA = getValueByPath(a.raw, field);
               const valueB = getValueByPath(b.raw, field);
 
-              if (
-                column.sortable?.sorter &&
-                isFunction(column.sortable.sorter)
-              ) {
+              if (column.sortable?.sorter && isFunction(column.sortable.sorter)) {
                 return column.sortable.sorter(a.raw, b.raw, {
                   dataIndex: field,
                   direction,
@@ -1069,12 +1012,9 @@ export default defineComponent({
       return data;
     });
 
-    const { page, pageSize, handlePageChange, handlePageSizeChange } =
-      usePagination(props, emit);
+    const { page, pageSize, handlePageChange, handlePageSizeChange } = usePagination(props, emit);
 
-    const onlyCurrent = computed(
-      () => rowSelection.value?.onlyCurrent ?? false
-    );
+    const onlyCurrent = computed(() => rowSelection.value?.onlyCurrent ?? false);
 
     watch(page, (cur, pre) => {
       if (cur !== pre && onlyCurrent.value) {
@@ -1092,9 +1032,7 @@ export default defineComponent({
       return sortedData.value;
     });
 
-    const flattenRawData = computed(() =>
-      flattenData.value.map((item) => item.raw)
-    );
+    const flattenRawData = computed(() => flattenData.value.map((item) => item.raw));
 
     const getSummaryData = () => {
       return dataColumns.value.reduce((per, column, index) => {
@@ -1126,9 +1064,7 @@ export default defineComponent({
       }, {} as Record<string, any>);
     };
 
-    const getTableDataWithRaw = (
-      data?: TableData[]
-    ): TableDataWithRaw[] | undefined => {
+    const getTableDataWithRaw = (data?: TableData[]): TableDataWithRaw[] | undefined => {
       if (data && data.length > 0) {
         return data.map((raw) => {
           return {
@@ -1206,9 +1142,7 @@ export default defineComponent({
     };
 
     const handleScroll = (e: Event) => {
-      if (
-        (e.target as HTMLDivElement).scrollLeft !== containerScrollLeft.value
-      ) {
+      if ((e.target as HTMLDivElement).scrollLeft !== containerScrollLeft.value) {
         containerScrollLeft.value = (e.target as HTMLDivElement).scrollLeft;
       }
       setAlignPosition();
@@ -1229,11 +1163,7 @@ export default defineComponent({
       emit('rowClick', record.raw, ev);
     };
 
-    const handleCellClick = (
-      record: TableDataWithRaw,
-      column: TableColumnData,
-      ev: Event
-    ) => {
+    const handleCellClick = (record: TableDataWithRaw, column: TableColumnData, ev: Event) => {
       emit('cellClick', record.raw, column, ev);
     };
 
@@ -1243,8 +1173,7 @@ export default defineComponent({
 
     const operations = computed(() => {
       const operations: TableOperationColumn[] = [];
-      const hasFixedColumn =
-        hasLeftFixedColumn.value || hasRightFixedColumn.value;
+      const hasFixedColumn = hasLeftFixedColumn.value || hasRightFixedColumn.value;
       let dragHandle: TableOperationColumn | undefined;
       let expand: TableOperationColumn | undefined;
       let selection: TableOperationColumn | undefined;
@@ -1271,10 +1200,7 @@ export default defineComponent({
 
       if (props.rowSelection) {
         selection = {
-          name:
-            props.rowSelection.type === 'radio'
-              ? 'selection-radio'
-              : 'selection-checkbox',
+          name: props.rowSelection.type === 'radio' ? 'selection-radio' : 'selection-checkbox',
           title: props.rowSelection.title,
           width: props.rowSelection.width,
           fixed: props.rowSelection.fixed || hasFixedColumn,
@@ -1298,9 +1224,7 @@ export default defineComponent({
     const headerStyle = computed(() => {
       if (isScroll.value.x) {
         const style: CSSProperties = {
-          width: isNumber(props.scroll?.x)
-            ? `${props.scroll?.x}px`
-            : props.scroll?.x,
+          width: isNumber(props.scroll?.x) ? `${props.scroll?.x}px` : props.scroll?.x,
         };
         if (props.scroll?.minWidth) {
           style.minWidth = isNumber(props.scroll.minWidth)
@@ -1315,9 +1239,7 @@ export default defineComponent({
     const contentStyle = computed(() => {
       if (isScroll.value.x && flattenData.value.length > 0) {
         const style: CSSProperties = {
-          width: isNumber(props.scroll?.x)
-            ? `${props.scroll?.x}px`
-            : props.scroll?.x,
+          width: isNumber(props.scroll?.x) ? `${props.scroll?.x}px` : props.scroll?.x,
         };
         if (props.scroll?.minWidth) {
           style.minWidth = isNumber(props.scroll.minWidth)
@@ -1368,20 +1290,15 @@ export default defineComponent({
       {
         [`${prefixCls}-border`]: bordered.value.wrapper,
         [`${prefixCls}-border-cell`]: bordered.value.cell,
-        [`${prefixCls}-border-header-cell`]:
-          !bordered.value.cell && bordered.value.headerCell,
-        [`${prefixCls}-border-body-cell`]:
-          !bordered.value.cell && bordered.value.bodyCell,
+        [`${prefixCls}-border-header-cell`]: !bordered.value.cell && bordered.value.headerCell,
+        [`${prefixCls}-border-body-cell`]: !bordered.value.cell && bordered.value.bodyCell,
         [`${prefixCls}-stripe`]: props.stripe,
         [`${prefixCls}-hover`]: props.hoverable,
         [`${prefixCls}-dragging`]: dragState.dragging,
         [`${prefixCls}-type-selection`]: Boolean(props.rowSelection),
         [`${prefixCls}-empty`]: props.data && flattenData.value.length === 0,
         [`${prefixCls}-layout-fixed`]:
-          props.tableLayoutFixed ||
-          isScroll.value.x ||
-          splitTable.value ||
-          hasEllipsis.value,
+          props.tableLayoutFixed || isScroll.value.x || splitTable.value || hasEllipsis.value,
       },
     ]);
 
@@ -1419,7 +1336,7 @@ export default defineComponent({
     const getThWidth = () => {
       const width: Record<string, number> = {};
       for (const key of Object.keys(thRefs.value)) {
-        width[key] = thRefs.value[key].offsetWidth;
+        width[key] = thRefs.value[key].getBoundingClientRect().width;
       }
       thWidth.value = width;
     };
@@ -1476,15 +1393,10 @@ export default defineComponent({
     };
 
     const allColumns = computed(() =>
-      ([] as (TableColumnData | TableOperationColumn)[]).concat(
-        operations.value,
-        dataColumns.value
-      )
+      ([] as (TableColumnData | TableOperationColumn)[]).concat(operations.value, dataColumns.value)
     );
 
-    const spanColumns = computed(() =>
-      props.spanAll ? allColumns.value : dataColumns.value
-    );
+    const spanColumns = computed(() => (props.spanAll ? allColumns.value : dataColumns.value));
 
     const { tableSpan, removedCells } = useSpan({
       spanMethod,
@@ -1492,12 +1404,11 @@ export default defineComponent({
       columns: spanColumns,
     });
 
-    const { tableSpan: tableSummarySpan, removedCells: removedSummaryCells } =
-      useSpan({
-        spanMethod: summarySpanMethod,
-        data: flattenData,
-        columns: allColumns,
-      });
+    const { tableSpan: tableSummarySpan, removedCells: removedSummaryCells } = useSpan({
+      spanMethod: summarySpanMethod,
+      data: flattenData,
+      columns: allColumns,
+    });
 
     const getVirtualColumnStyle = (name: string | undefined) => {
       if (!isVirtualList.value || !name || !thWidth.value[name]) {
@@ -1516,9 +1427,7 @@ export default defineComponent({
           key={`table-summary-${rowIndex}`}
           class={[
             `${prefixCls}-tr-summary`,
-            isFunction(props.rowClass)
-              ? props.rowClass(record.raw, rowIndex)
-              : props.rowClass,
+            isFunction(props.rowClass) ? props.rowClass(record.raw, rowIndex) : props.rowClass,
           ]}
           // @ts-ignore
           onClick={(ev: Event) => handleRowClick(record, ev)}
@@ -1583,11 +1492,7 @@ export default defineComponent({
     const renderSummary = () => {
       if (summaryData.value) {
         return (
-          <tfoot>
-            {summaryData.value.map((data, index) =>
-              renderSummaryRow(data, index)
-            )}
-          </tfoot>
+          <tfoot>{summaryData.value.map((data, index) => renderSummaryRow(data, index))}</tfoot>
         );
       }
       return null;
@@ -1598,13 +1503,8 @@ export default defineComponent({
         <ClientOnly>
           <VirtualList
             v-slots={{
-              item: ({
-                item,
-                index,
-              }: {
-                item: TableDataWithRaw;
-                index: number;
-              }) => renderRecord(item, index),
+              item: ({ item, index }: { item: TableDataWithRaw; index: number }) =>
+                renderRecord(item, index),
             }}
             ref={virtualComRef}
             class={`${prefixCls}-body`}
@@ -1623,10 +1523,7 @@ export default defineComponent({
       );
     };
 
-    const renderExpandBtn = (
-      record: TableDataWithRaw,
-      stopPropagation = true
-    ) => {
+    const renderExpandBtn = (record: TableDataWithRaw, stopPropagation = true) => {
       const currentKey = record.key;
       const expanded = expandedRowKeys.value.includes(currentKey);
 
@@ -1678,9 +1575,7 @@ export default defineComponent({
         return (
           <Tr key={`${record.key}-expand`} expand>
             <Td
-              isFixedExpand={
-                hasLeftFixedColumn.value || hasRightFixedColumn.value
-              }
+              isFixedExpand={hasLeftFixedColumn.value || hasRightFixedColumn.value}
               containerWidth={scrollContainer?.clientWidth}
               colSpan={dataColumns.value.length + operations.value.length}
             >
@@ -1753,9 +1648,7 @@ export default defineComponent({
                 [`${prefixCls}-tr-draggable`]: dragType.value === 'row',
                 [`${prefixCls}-tr-drag`]: isDragTarget,
               },
-              isFunction(props.rowClass)
-                ? props.rowClass(record, rowIndex)
-                : props.rowClass,
+              isFunction(props.rowClass) ? props.rowClass(record, rowIndex) : props.rowClass,
             ]}
             rowIndex={rowIndex}
             record={record}
@@ -1767,9 +1660,7 @@ export default defineComponent({
           >
             {operations.value.map((operation, index) => {
               const cellId = `${rowIndex}-${index}`;
-              const [rowspan, colspan] = props.spanAll
-                ? tableSpan.value[cellId] ?? [1, 1]
-                : [1, 1];
+              const [rowspan, colspan] = props.spanAll ? tableSpan.value[cellId] ?? [1, 1] : [1, 1];
 
               if (props.spanAll && removedCells.value.includes(cellId)) {
                 return null;
@@ -1810,9 +1701,7 @@ export default defineComponent({
                 index === 0
                   ? {
                       showExpandBtn: record.hasSubtree,
-                      indentSize: record.hasSubtree
-                        ? indentSize - 20
-                        : indentSize,
+                      indentSize: record.hasSubtree ? indentSize - 20 : indentSize,
                     }
                   : {};
 
@@ -1830,6 +1719,7 @@ export default defineComponent({
                   column={column}
                   operations={operations.value}
                   dataColumns={dataColumns.value}
+                  thWidth={thWidth.value}
                   rowSpan={rowspan}
                   renderExpandBtn={renderExpandBtn}
                   colSpan={colspan}
@@ -1852,9 +1742,7 @@ export default defineComponent({
     };
 
     const renderBody = () => {
-      const hasSubData = flattenData.value.some((record) =>
-        Boolean(record.hasSubtree)
-      );
+      const hasSubData = flattenData.value.some((record) => Boolean(record.hasSubtree));
 
       return (
         <Tbody
@@ -1888,17 +1776,14 @@ export default defineComponent({
                   operationColumn={operation}
                   operations={operations.value}
                   selectAll={Boolean(
-                    operation.name === 'selection-checkbox' &&
-                      props.rowSelection?.showCheckedAll
+                    operation.name === 'selection-checkbox' && props.rowSelection?.showCheckedAll
                   )}
                   rowSpan={groupColumns.value.length}
                 />
               ))}
             {row.map((column, index) => {
               const resizable =
-                props.columnResizable &&
-                Boolean(column.dataIndex) &&
-                index < row.length - 1;
+                props.columnResizable && Boolean(column.dataIndex) && index < row.length - 1;
 
               return (
                 <Th
@@ -1914,6 +1799,7 @@ export default defineComponent({
                   operations={operations.value}
                   dataColumns={dataColumns.value}
                   resizable={resizable}
+                  thWidth={thWidth.value}
                   onClick={(ev: Event) => handleHeaderClick(column, ev)}
                 />
               );
@@ -1972,13 +1858,8 @@ export default defineComponent({
               {isVirtualList.value ? (
                 <VirtualList
                   v-slots={{
-                    item: ({
-                      item,
-                      index,
-                    }: {
-                      item: TableDataWithRaw;
-                      index: number;
-                    }) => renderRecord(item, index),
+                    item: ({ item, index }: { item: TableDataWithRaw; index: number }) =>
+                      renderRecord(item, index),
                   }}
                   ref={(ins: any) => {
                     if (ins?.$el) tbodyRef.value = ins.$el;
@@ -2003,9 +1884,7 @@ export default defineComponent({
                   ref={tbodyComRef}
                   class={`${prefixCls}-body`}
                   style={{
-                    maxHeight: isNumber(props.scroll?.y)
-                      ? `${props.scroll?.y}px`
-                      : '100%',
+                    maxHeight: isNumber(props.scroll?.y) ? `${props.scroll?.y}px` : '100%',
                   }}
                   {...(scrollbar.value
                     ? {
@@ -2082,9 +1961,7 @@ export default defineComponent({
     };
 
     const renderTable = (content?: Slot) => {
-      const style = props.scroll?.maxHeight
-        ? { maxHeight: props.scroll.maxHeight }
-        : undefined;
+      const style = props.scroll?.maxHeight ? { maxHeight: props.scroll.maxHeight } : undefined;
 
       const Component = displayScrollbar.value ? Scrollbar : 'div';
 
@@ -2106,11 +1983,7 @@ export default defineComponent({
               onScroll={handleScroll}
             >
               {content ? (
-                <table
-                  class={`${prefixCls}-element`}
-                  cellpadding={0}
-                  cellspacing={0}
-                >
+                <table class={`${prefixCls}-element`} cellpadding={0} cellspacing={0}>
                   {content()}
                 </table>
               ) : (
@@ -2118,21 +1991,14 @@ export default defineComponent({
               )}
             </Component>
           </div>
-          {slots.footer && (
-            <div class={`${prefixCls}-footer`}>{slots.footer()}</div>
-          )}
+          {slots.footer && <div class={`${prefixCls}-footer`}>{slots.footer()}</div>}
         </>
       );
     };
 
     const renderPagination = () => {
       const paginationProps = isObject(props.pagination)
-        ? omit(props.pagination, [
-            'current',
-            'pageSize',
-            'defaultCurrent',
-            'defaultPageSize',
-          ])
+        ? omit(props.pagination, ['current', 'pageSize', 'defaultCurrent', 'defaultPageSize'])
         : {};
 
       return (
