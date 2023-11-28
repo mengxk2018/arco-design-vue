@@ -63,21 +63,27 @@ export function getColumnTitle(item: TableColumnData, index: number, group?: boo
   if (group && item.path) return item.path as string;
 
   let title = item.title || `#${index + 1}`;
-  if (isFunction(title)) {
-    const titleVNode = title() as VNode;
-    if (titleVNode.children) {
-      title = ((titleVNode.children as any[]) || [])
-        .filter((node) => typeof node === 'string')
-        .map((node) => node.trim())
-        .join('');
-    } else {
-      const render: any = titleVNode.type;
-      title = ((render(true).children as any[]) || [])
-        .filter((node) => typeof node.type === 'symbol')
-        .map((node) => node.children?.trim())
-        .join('');
+
+  try {
+    if (isFunction(title)) {
+      const titleVNode = title() as VNode;
+      if (titleVNode.children) {
+        title = ([] as any[])
+          .concat(titleVNode.children)
+          .filter((node) => typeof node === 'string')
+          .map((node) => node.trim())
+          .join('');
+      } else {
+        const render: any = titleVNode.type;
+        title = ([] as any[])
+          .concat(render(true).children)
+          .filter((node) => typeof node.type === 'symbol')
+          .map((node) => node.children?.trim())
+          .join('');
+      }
     }
-  }
+  } catch (error) {}
+
   return title as string;
 }
 
