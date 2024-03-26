@@ -20,9 +20,7 @@ export const useColumnFilter = ({
 
   const filterPopupVisible = ref(false);
   const isFilterActive = computed(() => filterValue.value.length > 0);
-  const isMultipleFilter = computed(() =>
-    Boolean(column.value.filterable?.multiple)
-  );
+  const isMultipleFilter = computed(() => Boolean(column.value.filterable?.multiple));
   const columnFilterValue = ref<string[]>(filterValue.value);
 
   watch(filterValue, (value) => {
@@ -47,25 +45,17 @@ export const useColumnFilter = ({
     setFilterValue([value]);
   };
 
-  const handleFilterConfirm = (ev: Event) => {
+  const handleFilterConfirm = (ev: Event, hide = true) => {
     if (column.value.dataIndex) {
-      tableCtx.onFilterChange?.(
-        column.value.dataIndex,
-        columnFilterValue.value,
-        ev
-      );
+      tableCtx.onFilterChange?.(column.value.dataIndex, columnFilterValue.value, ev);
     }
-    handleFilterPopupVisibleChange(false);
+    if (hide) handleFilterPopupVisibleChange(false);
   };
 
   const handleFilterReset = (ev: Event) => {
     setFilterValue([]);
     if (column.value.dataIndex) {
-      tableCtx.onFilterChange?.(
-        column.value.dataIndex,
-        columnFilterValue.value,
-        ev
-      );
+      tableCtx.onFilterChange?.(column.value.dataIndex, columnFilterValue.value, ev);
     }
     handleFilterPopupVisibleChange(false);
   };
